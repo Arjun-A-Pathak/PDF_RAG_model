@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import faiss
+import faiss-cpu
 from sentence_transformers import SentenceTransformer
 from openai import OpenAI
 
