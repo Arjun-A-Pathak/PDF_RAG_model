@@ -1,8 +1,0 @@
-streamlit
-openai
-pypdf
-faiss-cpu
-numpy
-sentence-transformers
-NearestNeighbors
-sklearn
