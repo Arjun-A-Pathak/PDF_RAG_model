@@ -4,3 +4,5 @@ pypdf
 faiss-cpu
 numpy
 sentence-transformers
+NearestNeighbors
+sklearn
