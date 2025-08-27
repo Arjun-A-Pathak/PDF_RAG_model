@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-import faiss
+# import faiss
 
 from sentence_transformers import SentenceTransformer
 from openai import OpenAI
@@ -28,27 +28,41 @@ def embed_texts(texts):
 
 # -----------------------------
 # 3️⃣ Build FAISS index from CSVs
-# -----------------------------
-def build_index_from_csv(files):
-    chunks = []
-    for file in files:
-        df = pd.read_csv(file)
-        text_data = df.astype(str).agg(" ".join, axis=1).tolist()
-        chunks.extend(text_data)
 
+from sklearn.neighbors import NearestNeighbors
+
+def build_index_from_csv(chunks):
     embeddings = embed_texts(chunks)
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(np.array(embeddings, dtype=np.float32))
-    return index, chunks
+    index = NearestNeighbors(n_neighbors=3, metric="euclidean")
+    index.fit(embeddings)
+    return index, embeddings, chunks
+
+def retrieve_chunks(query, embeddings, index, chunks):
+    query_emb = embed_texts([query])
+    distances, indices = index.kneighbors(query_emb, return_distance=True)
+    return distances[0], [chunks[i] for i in indices[0]]
 
 # -----------------------------
-# 4️⃣ Retrieve relevant chunks
-# -----------------------------
-def retrieve_chunks(query, chunks, index, k=3):
-    query_emb = embed_texts([query])
-    distances, indices = index.search(np.array(query_emb, dtype=np.float32), k)
-    return distances[0], [chunks[i] for i in indices[0]]
+# def build_index_from_csv(files):
+#     chunks = []
+#     for file in files:
+#         df = pd.read_csv(file)
+#         text_data = df.astype(str).agg(" ".join, axis=1).tolist()
+#         chunks.extend(text_data)
+
+#     embeddings = embed_texts(chunks)
+#     dim = embeddings.shape[1]
+#     index = faiss.IndexFlatL2(dim)
+#     index.add(np.array(embeddings, dtype=np.float32))
+#     return index, chunks
+
+# # -----------------------------
+# # 4️⃣ Retrieve relevant chunks
+# # -----------------------------
+# def retrieve_chunks(query, chunks, index, k=3):
+#     query_emb = embed_texts([query])
+#     distances, indices = index.search(np.array(query_emb, dtype=np.float32), k)
+#     return distances[0], [chunks[i] for i in indices[0]]
 
 # -----------------------------
 # 5️⃣ Ask question with CSV RAG
